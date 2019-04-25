@@ -1,0 +1,67 @@
+{
+  "format": 1,
+  "restore": {
+    "C:\\Code\\Microservices\\Libraries\\StockportGovUK.AspNetCore.Attributes.TokenAuthentication\\StockportGovUK.AspNetCore.Attributes.TokenAuthentication.csproj": {}
+  },
+  "projects": {
+    "C:\\Code\\Microservices\\Libraries\\StockportGovUK.AspNetCore.Attributes.TokenAuthentication\\StockportGovUK.AspNetCore.Attributes.TokenAuthentication.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Code\\Microservices\\Libraries\\StockportGovUK.AspNetCore.Attributes.TokenAuthentication\\StockportGovUK.AspNetCore.Attributes.TokenAuthentication.csproj",
+        "projectName": "StockportGovUK.AspNetCore.Attributes.TokenAuthentication",
+        "projectPath": "C:\\Code\\Microservices\\Libraries\\StockportGovUK.AspNetCore.Attributes.TokenAuthentication\\StockportGovUK.AspNetCore.Attributes.TokenAuthentication.csproj",
+        "packagesPath": "C:\\Users\\jonathan.hadley\\.nuget\\packages\\",
+        "outputPath": "C:\\Code\\Microservices\\Libraries\\StockportGovUK.AspNetCore.Attributes.TokenAuthentication\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\jonathan.hadley\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "netcoreapp2.2"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "http://pipelines.stockport.gov.uk:1980/guestAuth/app/nuget/v1/FeedService.svc/": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "netcoreapp2.2": {
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        }
+      },
+      "frameworks": {
+        "netcoreapp2.2": {
+          "dependencies": {
+            "Microsoft.AspNetCore.App": {
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[2.2.0, )",
+              "autoReferenced": true
+            },
+            "Microsoft.NETCore.App": {
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[2.2.0, )",
+              "autoReferenced": true
+            }
+          },
+          "imports": [
+            "net461"
+          ],
+          "assetTargetFallback": true,
+          "warn": true
+        }
+      }
+    }
+  }
+}

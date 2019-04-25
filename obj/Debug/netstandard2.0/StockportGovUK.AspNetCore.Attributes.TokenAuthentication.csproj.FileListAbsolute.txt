@@ -1,0 +1,4 @@
+C:\Code\Microservices\Libraries\StockportGovUK.AspNetCore.Attributes.TokenAuthentication\obj\Debug\netstandard2.0\StockportGovUK.AspNetCore.Attributes.TokenAuthentication.csprojAssemblyReference.cache
+C:\Code\Microservices\Libraries\StockportGovUK.AspNetCore.Attributes.TokenAuthentication\obj\Debug\netstandard2.0\StockportGovUK.AspNetCore.Attributes.TokenAuthentication.csproj.CoreCompileInputs.cache
+C:\Code\Microservices\Libraries\StockportGovUK.AspNetCore.Attributes.TokenAuthentication\obj\Debug\netstandard2.0\StockportGovUK.AspNetCore.Attributes.TokenAuthentication.AssemblyInfoInputs.cache
+C:\Code\Microservices\Libraries\StockportGovUK.AspNetCore.Attributes.TokenAuthentication\obj\Debug\netstandard2.0\StockportGovUK.AspNetCore.Attributes.TokenAuthentication.AssemblyInfo.cs
