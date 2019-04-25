@@ -1,8 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk"> 
   <PropertyGroup>
-    <PackageId>The token authentication attribute enables simple basic token authentication which will prohibit access to endpoints based on a client providing a key either as "api_key" in the request query string or in the "Authorization" header.
-    </PackageId>
-    <Title>A package that wraps setup and configuration of serilog and log to Elasticsearch running in AWS</Title>
+    <PackageId>StockportGovUK.AspNetCore.Attributes.TokenAuthentication</PackageId>
+    <Title>The token authentication attribute enables simple basic token authentication which will prohibit access to endpoints based on a client providing a key either as "api_key" in the request query string or in the "Authorization" header.</Title>
     <TargetFramework>netcoreapp2.2</TargetFramework>
     <VersionPrefix>0.1.0</VersionPrefix>
     <Authors>Colin Lees, Jon Chiles, Jon Hadley</Authors>
