@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace StockportGovUK.AspNetCore.Attributes.TokenAuthentication
 {
@@ -16,25 +17,30 @@ namespace StockportGovUK.AspNetCore.Attributes.TokenAuthentication
         private static string defaultConfigurationSection = "TokenAuthentication";
         private string Key { get; set; }
 
-        public TokenAuthenticationAttribute(IConfiguration configuration)
+        private void SetKey(ActionExecutingContext actionContext)
         {
-            var TokenAuthenticationSection = configuration.GetSection(defaultConfigurationSection);
-            var tokenAuthenticationConfiguration = new TokenAuthenticationConfiguration();            
-            if (TokenAuthenticationSection.AsEnumerable().Any())
+            if(string.IsNullOrEmpty(Key))
             {
-                TokenAuthenticationSection.Bind(tokenAuthenticationConfiguration);
-            }
+                // This comes from here... https://www.devtrends.co.uk/blog/dependency-injection-in-action-filters-in-asp.net-core
+                var configuration = actionContext.HttpContext.RequestServices.GetService<IConfiguration>();
+                var tokenAuthenticationSection = configuration.GetSection(defaultConfigurationSection);
+                var tokenAuthenticationConfiguration = new TokenAuthenticationConfiguration();            
+                if (tokenAuthenticationSection.AsEnumerable().Any())
+                {
+                    tokenAuthenticationSection.Bind(tokenAuthenticationConfiguration);
+                }
 
-            Key = tokenAuthenticationConfiguration.Key;
+                Key = tokenAuthenticationConfiguration.Key;
+            }
         }
 
         public override void OnActionExecuting(ActionExecutingContext actionContext)
         {
-            // todo : Get auth token from configuration
+            SetKey(actionContext);
+
             try
             {
                 var querystring = actionContext.HttpContext.Request.Query.FirstOrDefault(a => a.Key == "api_key");
-
                 var authToken = querystring.Value.First();
                 if(authToken != default(StringValues))
                 {
