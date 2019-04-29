@@ -15,48 +15,56 @@ namespace StockportGovUK.AspNetCore.Attributes.TokenAuthentication
     public class TokenAuthenticationAttribute : ActionFilterAttribute
     {
         private static string defaultConfigurationSection = "TokenAuthentication";
-        private string Key { get; set; }
 
-        private void SetKey(ActionExecutingContext actionContext)
+
+        private string GetKey(ActionExecutingContext actionContext)
         {
-            if(string.IsNullOrEmpty(Key))
+            // This comes from here... https://www.devtrends.co.uk/blog/dependency-injection-in-action-filters-in-asp.net-core
+            var configuration = actionContext.HttpContext.RequestServices.GetService<IConfiguration>();
+            if (configuration == null)
             {
-                // This comes from here... https://www.devtrends.co.uk/blog/dependency-injection-in-action-filters-in-asp.net-core
-                var configuration = actionContext.HttpContext.RequestServices.GetService<IConfiguration>();
-                var tokenAuthenticationSection = configuration.GetSection(defaultConfigurationSection);
-                var tokenAuthenticationConfiguration = new TokenAuthenticationConfiguration();            
-                if (tokenAuthenticationSection.AsEnumerable().Any())
-                {
-                    tokenAuthenticationSection.Bind(tokenAuthenticationConfiguration);
-                }
-
-                Key = tokenAuthenticationConfiguration.Key;
+                throw new Exception("Could not load configuration");
             }
+
+            var tokenAuthenticationSection = configuration.GetSection(defaultConfigurationSection);
+            var tokenAuthenticationConfiguration = new TokenAuthenticationConfiguration();
+
+            if (tokenAuthenticationSection == null)
+            {
+                throw new Exception("Token authentication is not configured");
+            }
+            else if (!tokenAuthenticationSection.AsEnumerable().Any())
+            {
+                throw new Exception("Token authentication is not configured");
+            }
+            
+            tokenAuthenticationSection.Bind(tokenAuthenticationConfiguration);    
+            return tokenAuthenticationConfiguration.Key;
         }
 
         public override void OnActionExecuting(ActionExecutingContext actionContext)
         {
-            SetKey(actionContext);
+            var key = GetKey(actionContext);
             // try
             // {
-                var querystring = actionContext.HttpContext.Request.Query.FirstOrDefault(a => a.Key == "api_key");
-                var authToken = querystring.Value.FirstOrDefault();
-                
-                if(string.IsNullOrEmpty(authToken))
-                {
-                    authToken = GetTokenFromRequestHeaders(actionContext.HttpContext.Request);
-                }
+            var querystring = actionContext.HttpContext.Request.Query.FirstOrDefault(a => a.Key == "api_key");
+            var authToken = querystring.Value.FirstOrDefault();
 
-                var authenticator = new TokenAuthenticator(Key);
-                var authenticationResult = authenticator.Authenticate(authToken);
+            if (string.IsNullOrEmpty(authToken))
+            {
+                authToken = GetTokenFromRequestHeaders(actionContext.HttpContext.Request);
+            }
 
-                if (authenticationResult.IsAuthenticated)
-                {
-                    return;
-                }
+            var authenticator = new TokenAuthenticator(key);
+            var authenticationResult = authenticator.Authenticate(authToken);
 
-                throw new Exception($"Env Key: {Key} AuthToken: {authToken} - There was a problem.");
-                actionContext.Result = new UnauthorizedObjectResult(authenticationResult.Reason);
+            if (authenticationResult.IsAuthenticated)
+            {
+                return;
+            }
+
+            throw new Exception($"Env Key: {key} AuthToken: {authToken} - There was a problem.");
+            actionContext.Result = new UnauthorizedObjectResult(authenticationResult.Reason);
             // }
             // catch (Exception ex)
             // {
@@ -67,11 +75,11 @@ namespace StockportGovUK.AspNetCore.Attributes.TokenAuthentication
 
         private static string GetTokenFromRequestHeaders(HttpRequest request)
         {
-            if(request.Headers.TryGetValue("Authorization", out StringValues authToken))
+            if (request.Headers.TryGetValue("Authorization", out StringValues authToken))
             {
                 return authToken.Last();
             }
-            
+
             return string.Empty;
         }
     }
