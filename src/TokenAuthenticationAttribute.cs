@@ -37,29 +37,32 @@ namespace StockportGovUK.AspNetCore.Attributes.TokenAuthentication
         public override void OnActionExecuting(ActionExecutingContext actionContext)
         {
             SetKey(actionContext);
-
-            try
-            {
+            // try
+            // {
                 var querystring = actionContext.HttpContext.Request.Query.FirstOrDefault(a => a.Key == "api_key");
-                var authToken = querystring.Value.First();
-                if(authToken != default(StringValues))
+                var authToken = querystring.Value.FirstOrDefault();
+                
+                if(string.IsNullOrEmpty(authToken))
                 {
                     authToken = GetTokenFromRequestHeaders(actionContext.HttpContext.Request);
                 }
 
                 var authenticator = new TokenAuthenticator(Key);
                 var authenticationResult = authenticator.Authenticate(authToken);
+
                 if (authenticationResult.IsAuthenticated)
                 {
                     return;
                 }
 
+                throw new Exception($"Env Key: {Key} AuthToken: {authToken} - There was a problem.");
                 actionContext.Result = new UnauthorizedObjectResult(authenticationResult.Reason);
-            }
-            catch (Exception)
-            {
-                actionContext.Result = new BadRequestObjectResult("Your request could not be processed"){ StatusCode = 501 };
-            }
+            // }
+            // catch (Exception ex)
+            // {
+            //     Console.WriteLine(ex.Message);
+            //     actionContext.Result = new BadRequestObjectResult("Your request could not be processed"){ StatusCode = 501 };
+            // }
         }
 
         private static string GetTokenFromRequestHeaders(HttpRequest request)

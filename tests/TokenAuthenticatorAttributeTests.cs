@@ -21,31 +21,31 @@ namespace StockportGovUK.AspNetCore.Attributes.TokenAuthentication.Tests
 {
     public class TokenAuthenticatorAttributeTests
     {
-        private Mock<IServiceProvider> MockServiceProvider { get {
-            var configuration = ConfigurationLoadHelper.GetConfiguration();
-            var mockServiceProvider = new Mock<IServiceProvider>();
-            mockServiceProvider
-                .Setup(provider => provider.GetService(typeof(IConfiguration)))
-                .Returns(configuration);
+        // private Mock<IServiceProvider> MockServiceProvider { get {
+        //     var configuration = ConfigurationLoadHelper.GetConfiguration();
+        //     var mockServiceProvider = new Mock<IServiceProvider>();
+        //     mockServiceProvider
+        //         .Setup(provider => provider.GetService(typeof(IConfiguration)))
+        //         .Returns(configuration);
 
-            return mockServiceProvider;
-        }}
+        //     return mockServiceProvider;
+        // }}
 
-        private Mock<HttpContext> MockHttpContext { get {
-            var configuration = ConfigurationLoadHelper.GetConfiguration();
+        // private Mock<HttpContext> MockHttpContext { get {
+        //     var configuration = ConfigurationLoadHelper.GetConfiguration();
 
-            var mockServiceProvider = new Mock<IServiceProvider>();
-            mockServiceProvider
-                .Setup(provider => provider.GetService(typeof(IConfiguration)))
-                .Returns(configuration);
+        //     var mockServiceProvider = new Mock<IServiceProvider>();
+        //     mockServiceProvider
+        //         .Setup(provider => provider.GetService(typeof(IConfiguration)))
+        //         .Returns(configuration);
 
-            var mockHttpContext = new Mock<HttpContext>();
-            mockHttpContext
-                .SetupGet(context => context.RequestServices)
-                .Returns(mockServiceProvider.Object);
+        //     var mockHttpContext = new Mock<HttpContext>();
+        //     mockHttpContext
+        //         .SetupGet(context => context.RequestServices)
+        //         .Returns(mockServiceProvider.Object);
 
-            return mockHttpContext;
-        }}
+        //     return mockHttpContext;
+        // }}
 
         // [Fact]
         // public void TokenAuthenticatorAttribute_Returns_UnauthjorizedAuthenticationResult_WhenIncorrect_ApiKeyIsInQueryString()
