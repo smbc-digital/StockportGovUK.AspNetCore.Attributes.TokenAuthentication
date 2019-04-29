@@ -21,62 +21,22 @@ namespace StockportGovUK.AspNetCore.Attributes.TokenAuthentication.Tests
 {
     public class TokenAuthenticatorAttributeTests
     {
-        // private Mock<IServiceProvider> MockServiceProvider { get {
-        //     var configuration = ConfigurationLoadHelper.GetConfiguration();
-        //     var mockServiceProvider = new Mock<IServiceProvider>();
-        //     mockServiceProvider
-        //         .Setup(provider => provider.GetService(typeof(IConfiguration)))
-        //         .Returns(configuration);
-
-        //     return mockServiceProvider;
-        // }}
-
-        // private Mock<HttpContext> MockHttpContext { get {
-        //     var configuration = ConfigurationLoadHelper.GetConfiguration();
-
-        //     var mockServiceProvider = new Mock<IServiceProvider>();
-        //     mockServiceProvider
-        //         .Setup(provider => provider.GetService(typeof(IConfiguration)))
-        //         .Returns(configuration);
-
-        //     var mockHttpContext = new Mock<HttpContext>();
-        //     mockHttpContext
-        //         .SetupGet(context => context.RequestServices)
-        //         .Returns(mockServiceProvider.Object);
-
-        //     return mockHttpContext;
-        // }}
-
-        // [Fact]
-        // public void TokenAuthenticatorAttribute_Returns_UnauthjorizedAuthenticationResult_WhenIncorrect_ApiKeyIsInQueryString()
-        // {
-        //     var queryDictionary = new Dictionary<string, StringValues>();
-        //     queryDictionary.Add("api_key", new StringValues("abc1234"));
-            
-        //     var queryCollection = new QueryCollection(queryDictionary);
-            
-        //     var mockHttpContext = MockHttpContext;
-        //     mockHttpContext.Setup(_ => _.Request.Query).Returns(queryCollection);
-            
-        //     var mockRouteData = new Mock<RouteData>();
-        //     var mockActionDescriptor = new Mock<ActionDescriptor>();
-        //     var mockController = new Mock<Controller>();
-        //     var actionContext = new ActionContext(mockHttpContext.Object, mockRouteData.Object, mockActionDescriptor.Object);
-        //     var actionExecutingContext = new ActionExecutingContext(actionContext, new List<IFilterMetadata>(), new Dictionary<string, object>(), mockController.Object);
-        //     var tokenAuthenticationAttribute = new TokenAuthenticationAttribute();
-            
-        //     // Act 
-        //     tokenAuthenticationAttribute.OnActionExecuting(actionExecutingContext);
-            
-        //     // Assert
-        //     Assert.IsType<UnauthorizedObjectResult>(actionExecutingContext.Result);
-        // }
-        
-        [Fact]
-        public void TokenAuthenticatorAttribute_Returns_AuthorizedAuthenticationResult_WhenIncorrect_ApiKeyIsInQueryString()
-        {
+        private Mock<RouteData> mockRouteData = new Mock<RouteData>();
+        private Mock<ActionDescriptor> mockActionDescriptor = new Mock<ActionDescriptor>();
+        private Mock<Controller> mockController = new Mock<Controller>();
+        private Mock<IServiceProvider> MockServiceProvider { get {
             var configuration = ConfigurationLoadHelper.GetConfiguration();
-            
+            var mockServiceProvider = new Mock<IServiceProvider>();
+            mockServiceProvider
+                .Setup(provider => provider.GetService(typeof(IConfiguration)))
+                .Returns(configuration);
+
+            return mockServiceProvider;
+        }}
+
+        private Mock<HttpContext> MockHttpContext { get {
+            var configuration = ConfigurationLoadHelper.GetConfiguration();
+
             var mockServiceProvider = new Mock<IServiceProvider>();
             mockServiceProvider
                 .Setup(provider => provider.GetService(typeof(IConfiguration)))
@@ -87,6 +47,37 @@ namespace StockportGovUK.AspNetCore.Attributes.TokenAuthentication.Tests
                 .SetupGet(context => context.RequestServices)
                 .Returns(mockServiceProvider.Object);
 
+            return mockHttpContext;
+        }}
+
+        [Fact]
+        public void TokenAuthenticatorAttribute_Returns_UnauthorizedAuthenticationResult_WhenIncorrect_ApiKeyIsInQueryString()
+        {
+            var queryDictionary = new Dictionary<string, StringValues>();
+            queryDictionary.Add("api_key", new StringValues("abc1234"));
+            
+            var queryCollection = new QueryCollection(queryDictionary);
+            
+            var mockHttpContext = MockHttpContext;
+            mockHttpContext.Setup(_ => _.Request.Query).Returns(queryCollection);
+            
+
+            var actionContext = new ActionContext(mockHttpContext.Object, mockRouteData.Object, mockActionDescriptor.Object);
+            var actionExecutingContext = new ActionExecutingContext(actionContext, new List<IFilterMetadata>(), new Dictionary<string, object>(), mockController.Object);
+            var tokenAuthenticationAttribute = new TokenAuthenticationAttribute();
+            
+            // Act 
+            tokenAuthenticationAttribute.OnActionExecuting(actionExecutingContext);
+            
+            // Assert
+            Assert.IsType<UnauthorizedObjectResult>(actionExecutingContext.Result);
+        }
+        
+        [Fact]
+        public void TokenAuthenticatorAttribute_Returns_AuthorizedAuthenticationResult_WhenCorrect_ApiKeyIsInQueryString()
+        {
+            var configuration = ConfigurationLoadHelper.GetConfiguration();
+            var mockHttpContext = MockHttpContext;
             var queryDictionary = new Dictionary<string, StringValues>();
             queryDictionary.Add("api_key", new StringValues("abc12345"));
             var queryCollection = new QueryCollection(queryDictionary);
@@ -95,9 +86,6 @@ namespace StockportGovUK.AspNetCore.Attributes.TokenAuthentication.Tests
                 .Setup(_ => _.Request.Query)
                 .Returns(queryCollection);
             
-            var mockRouteData = new Mock<RouteData>();
-            var mockActionDescriptor = new Mock<ActionDescriptor>();
-            var mockController = new Mock<Controller>();
             var actionContext = new ActionContext(mockHttpContext.Object, mockRouteData.Object, mockActionDescriptor.Object);
             var actionExecutingContext = new ActionExecutingContext(actionContext, new List<IFilterMetadata>(), new Dictionary<string, object>(), mockController.Object);
             var tokenAuthenticationAttribute = new TokenAuthenticationAttribute();
@@ -110,28 +98,64 @@ namespace StockportGovUK.AspNetCore.Attributes.TokenAuthentication.Tests
             Assert.IsNotType<BadRequestObjectResult>(actionExecutingContext.Result);
         }
 
-        // [Fact]
-        // public void TokenAuthenticatorAttribute_Returns_UnauthorizedAuthenticationResult_WhenApiKeyIsInHeader()
-        // {          
-        //     var dictionary = new Dictionary<string, StringValues>();
-        //     dictionary.Add("Authorization", new StringValues("BEARER abc1234"));
+        [Fact]
+        public void TokenAuthenticatorAttribute_Returns_UnauthorizedAuthenticationResult_WhenApiKeyIsInHeader()
+        {          
+            var dictionary = new Dictionary<string, StringValues>();
+            dictionary.Add("Authorization", new StringValues("BEARER abc1234"));
                         
-        //     var mockHttpContext = MockHttpContext;
-        //     mockHttpContext.Setup(_ => _.Request.Headers).Returns(new HeaderDictionary(dictionary));
-        //     mockHttpContext.Setup(_ => _.Request.Query).Returns(new QueryCollection());
+            var mockHttpContext = MockHttpContext;
+            mockHttpContext.Setup(_ => _.Request.Headers).Returns(new HeaderDictionary(dictionary));
+            mockHttpContext.Setup(_ => _.Request.Query).Returns(new QueryCollection());
 
-        //     var mockRouteData = new Mock<RouteData>();
-        //     var mockActionDescriptor = new Mock<ActionDescriptor>();
-        //     var mockController = new Mock<Controller>();
-        //     var actionContext = new ActionContext(mockHttpContext.Object, mockRouteData.Object, mockActionDescriptor.Object);
-        //     var actionExecutingContext = new ActionExecutingContext(actionContext, new List<IFilterMetadata>(), new Dictionary<string, object>(), mockController.Object);
-        //     var tokenAuthenticationAttribute = new TokenAuthenticationAttribute();
+            var actionContext = new ActionContext(mockHttpContext.Object, mockRouteData.Object, mockActionDescriptor.Object);
+            var actionExecutingContext = new ActionExecutingContext(actionContext, new List<IFilterMetadata>(), new Dictionary<string, object>(), mockController.Object);
+            var tokenAuthenticationAttribute = new TokenAuthenticationAttribute();
             
-        //     // Act 
-        //     tokenAuthenticationAttribute.OnActionExecuting(actionExecutingContext);
+            // Act 
+            tokenAuthenticationAttribute.OnActionExecuting(actionExecutingContext);
             
-        //     // Assert
-        //     Assert.IsType<UnauthorizedObjectResult>(actionExecutingContext.Result);
-        // }
+            // Assert
+            Assert.IsType<UnauthorizedObjectResult>(actionExecutingContext.Result);
+        }
+
+        [Fact]
+        public void TokenAuthenticatorAttribute_Returns_AuthorizedAuthenticationResult_WhenCorrectApiKeyIsInHeader()
+        {          
+            var dictionary = new Dictionary<string, StringValues>();
+            dictionary.Add("Authorization", new StringValues("BEARER abc12345"));
+                        
+            var mockHttpContext = MockHttpContext;
+            mockHttpContext.Setup(_ => _.Request.Headers).Returns(new HeaderDictionary(dictionary));
+            mockHttpContext.Setup(_ => _.Request.Query).Returns(new QueryCollection());
+
+            var actionContext = new ActionContext(mockHttpContext.Object, mockRouteData.Object, mockActionDescriptor.Object);
+            var actionExecutingContext = new ActionExecutingContext(actionContext, new List<IFilterMetadata>(), new Dictionary<string, object>(), mockController.Object);
+            var tokenAuthenticationAttribute = new TokenAuthenticationAttribute();
+            
+            // Act 
+            tokenAuthenticationAttribute.OnActionExecuting(actionExecutingContext);
+            
+            // Assert
+            Assert.IsNotType<UnauthorizedObjectResult>(actionExecutingContext.Result);
+            Assert.IsNotType<BadRequestObjectResult>(actionExecutingContext.Result);
+        }
+
+        [Fact]
+        public void TokenAuthenticatorAttribute_Returns_BadRequestObjectResult_WhenExceptionIsThrown()
+        {          
+            var mockHttpContext = MockHttpContext;
+            mockHttpContext.Setup(_ => _.Request.Query).Throws(new Exception("This is a test exception"));
+
+            var actionContext = new ActionContext(mockHttpContext.Object, mockRouteData.Object, mockActionDescriptor.Object);
+            var actionExecutingContext = new ActionExecutingContext(actionContext, new List<IFilterMetadata>(), new Dictionary<string, object>(), mockController.Object);
+            var tokenAuthenticationAttribute = new TokenAuthenticationAttribute();
+            
+            // Act 
+            tokenAuthenticationAttribute.OnActionExecuting(actionExecutingContext);
+            
+            // Assert
+            Assert.IsType<BadRequestObjectResult>(actionExecutingContext.Result);
+        }
     }
 }
