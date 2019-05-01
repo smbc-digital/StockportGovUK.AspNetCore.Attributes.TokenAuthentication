@@ -16,7 +16,6 @@ namespace StockportGovUK.AspNetCore.Attributes.TokenAuthentication
     {
         private static string defaultConfigurationSection = "TokenAuthentication";
 
-
         private string GetKey(ActionExecutingContext actionContext)
         {
             // This comes from here... https://www.devtrends.co.uk/blog/dependency-injection-in-action-filters-in-asp.net-core
@@ -63,7 +62,6 @@ namespace StockportGovUK.AspNetCore.Attributes.TokenAuthentication
                     return;
                 }
 
-                // throw new Exception($"Env Key: {key} AuthToken: {authToken} - There was a problem.");
                 actionContext.Result = new UnauthorizedObjectResult(authenticationResult.Reason);
             }
             catch (Exception ex)
