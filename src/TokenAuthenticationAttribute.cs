@@ -14,7 +14,7 @@ namespace StockportGovUK.AspNetCore.Attributes.TokenAuthentication
     {
         private static string defaultConfigurationSection = "TokenAuthentication";
 
-        private string[] _ignoredRoutes;
+        private string[] _ignoredRoutes = new string[0];
 
         public string[] IgnoredRoutes
         {
