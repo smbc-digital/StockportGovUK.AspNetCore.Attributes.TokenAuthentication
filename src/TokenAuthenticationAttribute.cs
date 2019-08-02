@@ -1,12 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -15,6 +13,22 @@ namespace StockportGovUK.AspNetCore.Attributes.TokenAuthentication
     public class TokenAuthenticationAttribute : ActionFilterAttribute
     {
         private static string defaultConfigurationSection = "TokenAuthentication";
+
+        private string[] _ignoredRoutes;
+
+        public string[] IgnoredRoutes
+        {
+            get => _ignoredRoutes;
+
+            set
+            {
+                _ignoredRoutes = value;
+                for (var i = 0; i < value.Length; i++)
+                {
+                    _ignoredRoutes[i] = value[i].ToLower();
+                }
+            }
+        }
 
         private string GetKey(ActionExecutingContext actionContext)
         {
@@ -43,6 +57,11 @@ namespace StockportGovUK.AspNetCore.Attributes.TokenAuthentication
 
         public override void OnActionExecuting(ActionExecutingContext actionContext)
         {
+            if (Array.IndexOf(_ignoredRoutes, actionContext.HttpContext.Request.Path.ToString().ToLower()) >= 0)
+            {
+                return;
+            }
+
             var key = GetKey(actionContext);
             try
             {
