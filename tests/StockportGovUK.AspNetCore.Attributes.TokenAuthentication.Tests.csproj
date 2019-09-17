@@ -16,5 +16,8 @@
   <ItemGroup>
     <ProjectReference Include="..\src\StockportGovUK.AspNetCore.Attributes.TokenAuthentication.csproj" />
     <Content Include="appsettings.json" CopyToOutputDirectory="PreserveNewest"  />
+    <Content Include="appsettingsHeader.json" CopyToOutputDirectory="PreserveNewest"  />
+    <Content Include="appsettingsQueryString.json" CopyToOutputDirectory="PreserveNewest"  />
+    <Content Include="appsettingsCustomRedirect.json" CopyToOutputDirectory="PreserveNewest"  />
   </ItemGroup>
 </Project>

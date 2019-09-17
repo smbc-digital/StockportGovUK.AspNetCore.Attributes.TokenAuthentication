@@ -57,6 +57,28 @@ namespace StockportGovUK.AspNetCore.Attributes.TokenAuthentication.Tests
             // Assert
             Assert.IsType<UnauthorizedObjectResult>(actionExecutingContext.Result);
         }
+
+        [Fact]
+        public void TokenAuthenticatorAttribute_Returns_RedirectResult_WhenIncorrect_ApiKeyIsInQueryString_AndCustomRedirectSpecified()
+        {
+            var queryDictionary = new Dictionary<string, StringValues>();
+            queryDictionary.Add("api_key", new StringValues("abc1234"));
+            
+            var queryCollection = new QueryCollection(queryDictionary);
+            
+            var mockHttpContext = BuildMockHttpContext("appsettingsCustomRedirect.json");
+            mockHttpContext.Setup(_ => _.Request.Query).Returns(queryCollection);    
+
+            var actionContext = new ActionContext(mockHttpContext.Object, mockRouteData.Object, mockActionDescriptor.Object);
+            var actionExecutingContext = new ActionExecutingContext(actionContext, new List<IFilterMetadata>(), new Dictionary<string, object>(), mockController.Object);
+            var tokenAuthenticationAttribute = new TokenAuthenticationAttribute();
+            
+            // Act 
+            tokenAuthenticationAttribute.OnActionExecuting(actionExecutingContext);
+            
+            // Assert
+            Assert.IsType<RedirectResult>(actionExecutingContext.Result);
+        }
         
         [Fact]
         public void TokenAuthenticatorAttribute_Returns_UnauthorizedAuthenticationResult_WhenIncorrect_ApiKeyIsInQueryString_AndUsingAlternativeQueryString()
@@ -66,7 +88,7 @@ namespace StockportGovUK.AspNetCore.Attributes.TokenAuthentication.Tests
             
             var queryCollection = new QueryCollection(queryDictionary);
             
-            var mockHttpContext = BuildMockHttpContext();;
+            var mockHttpContext = BuildMockHttpContext("appsettingsQueryString.json");
             mockHttpContext.Setup(_ => _.Request.Query).Returns(queryCollection);
             
 
@@ -133,7 +155,7 @@ namespace StockportGovUK.AspNetCore.Attributes.TokenAuthentication.Tests
             var dictionary = new Dictionary<string, StringValues>();
             dictionary.Add("MyAlternativeHeader", new StringValues("abc1234"));
                         
-            var mockHttpContext = BuildMockHttpContext();;
+            var mockHttpContext = BuildMockHttpContext("appsettingsHeader.json");
             mockHttpContext.Setup(_ => _.Request.Headers).Returns(new HeaderDictionary(dictionary));
             mockHttpContext.Setup(_ => _.Request.Query).Returns(new QueryCollection());
 

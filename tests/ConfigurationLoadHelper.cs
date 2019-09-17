@@ -12,7 +12,7 @@ namespace StockportGovUK.AspNetCore.Attributes.TokenAuthentication.Tests
         public static IConfiguration GetConfiguration(string filename)
         {            
             return new ConfigurationBuilder()
-                .AddJsonFile(filename, optional: true)
+                .AddJsonFile(filename, optional: false)
                 .AddEnvironmentVariables()
                 .Build();
         }   
