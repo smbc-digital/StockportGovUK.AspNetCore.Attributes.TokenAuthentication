@@ -12,9 +12,34 @@ The required API key is stored in a preferrably secret configuration file for th
 }
 ```
 
-To secure an API end point use the TokenAuthentication attribute.
+You can also specify an alternative value to look for in the querystring.
+
+```json
+"TokenAuthentication": {
+    "Key": "Your secret token here",
+    "QueryString": "MyCustomQueryString"
+}
+```
+
+Or an alternative header.
+
+```json
+"TokenAuthentication": {
+    "Key": "Your secret token here",
+    "Header": "MyCustomHeader"
+}
+```
+
+
+To secure an API end point or an entire controller using the TokenAuthentication attribute.
 
 ```C#
 [TokenAuthentication]
 public ActionResult YourActionName()
+```
+
+### Ignored Routes ###
+You can specify routes to be ignored when you specify TokenAuthentication and the controller level as below.
+```c#
+IgnoredRoutes = new []{"/api/my/endpoint/action"})
 ```
