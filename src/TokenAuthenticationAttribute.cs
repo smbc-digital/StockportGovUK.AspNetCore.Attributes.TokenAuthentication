@@ -13,7 +13,7 @@ namespace StockportGovUK.AspNetCore.Attributes.TokenAuthentication
     public class TokenAuthenticationAttribute : ActionFilterAttribute
     {
         private static string defaultConfigurationSection = "TokenAuthentication";
-
+        
         private string[] _ignoredRoutes = new string[0];
 
         public string[] IgnoredRoutes
@@ -30,7 +30,40 @@ namespace StockportGovUK.AspNetCore.Attributes.TokenAuthentication
             }
         }
 
-        private string GetKey(ActionExecutingContext actionContext)
+        public override void OnActionExecuting(ActionExecutingContext actionContext)
+        {
+            if (Array.IndexOf(_ignoredRoutes, actionContext.HttpContext.Request.Path.ToString().ToLower()) >= 0)
+            {
+                return;
+            }
+
+            var configuration = GetConfiguration(actionContext);
+            try
+            {
+                var authToken = GetTokenFromQueryString(actionContext.HttpContext.Request, configuration);
+                if (string.IsNullOrEmpty(authToken))
+                {
+                    authToken = GetTokenFromHeaders(actionContext.HttpContext.Request, configuration);
+                }
+
+                var authenticator = new TokenAuthenticator(configuration.Key);
+                var authenticationResult = authenticator.Authenticate(authToken);
+                if (authenticationResult.IsAuthenticated)
+                {
+                    return;
+                }
+
+                //actionContext.Result = new RedirectToActionResult("ControllerName", "ActionName", null);
+                actionContext.Result = new UnauthorizedObjectResult(authenticationResult.Reason);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("**ERROR**: " + ex.Message);
+                actionContext.Result = new BadRequestObjectResult("Your request could not be processed"){ StatusCode = 500 };
+            }
+        }
+
+        private TokenAuthenticationConfiguration GetConfiguration(ActionExecutingContext actionContext)
         {
             // This comes from here... https://www.devtrends.co.uk/blog/dependency-injection-in-action-filters-in-asp.net-core
             var configuration = actionContext.HttpContext.RequestServices.GetService<IConfiguration>();
@@ -42,61 +75,43 @@ namespace StockportGovUK.AspNetCore.Attributes.TokenAuthentication
             var tokenAuthenticationSection = configuration.GetSection(defaultConfigurationSection);
             var tokenAuthenticationConfiguration = new TokenAuthenticationConfiguration();
 
-            if (tokenAuthenticationSection == null)
-            {
-                throw new Exception("Token authentication is not configured");
-            }
-            else if (!tokenAuthenticationSection.AsEnumerable().Any())
+            if (tokenAuthenticationSection == null ||!tokenAuthenticationSection.AsEnumerable().Any())
             {
                 throw new Exception("Token authentication is not configured");
             }
             
             tokenAuthenticationSection.Bind(tokenAuthenticationConfiguration);    
-            return tokenAuthenticationConfiguration.Key;
+            return tokenAuthenticationConfiguration;
+        }
+        
+        private static string GetTokenFromQueryString(HttpRequest request, TokenAuthenticationConfiguration configuration)
+        {
+            if(!string.IsNullOrEmpty(configuration.QueryString))
+            {
+                return request.Query.FirstOrDefault(a => a.Key == configuration.QueryString)
+                    .Value
+                    .FirstOrDefault();
+            }
+
+            return request.Query.FirstOrDefault(a => a.Key == "api_key")
+                    .Value
+                    .FirstOrDefault();
         }
 
-        public override void OnActionExecuting(ActionExecutingContext actionContext)
+        private static string GetTokenFromHeaders(HttpRequest request, TokenAuthenticationConfiguration configuration)
         {
-            if (Array.IndexOf(_ignoredRoutes, actionContext.HttpContext.Request.Path.ToString().ToLower()) >= 0)
+            StringValues authToken;
+
+            if(!string.IsNullOrEmpty(configuration.Header))
             {
-                return;
-            }
+                if(request.Headers != null && request.Headers.TryGetValue(configuration.Header, out authToken)){
+                    return authToken;
+                };
+            }        
 
-            var key = GetKey(actionContext);
-            try
+            if (request.Headers != null && request.Headers.TryGetValue("Authorization", out authToken))
             {
-                var querystring = actionContext.HttpContext.Request.Query.FirstOrDefault(a => a.Key == "api_key");
-                var authToken = querystring.Value.FirstOrDefault();
-
-                if (string.IsNullOrEmpty(authToken))
-                {
-                    authToken = GetTokenFromRequestHeaders(actionContext.HttpContext.Request);
-                }
-
-                var authenticator = new TokenAuthenticator(key);
-                var authenticationResult = authenticator.Authenticate(authToken);
-
-                if (authenticationResult.IsAuthenticated)
-                {
-                    return;
-                }
-
-                actionContext.Result = new UnauthorizedObjectResult(authenticationResult.Reason);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-                actionContext.Result = new BadRequestObjectResult("Your request could not be processed"){ StatusCode = 501 };
-            }
-        }
-
-        private static string GetTokenFromRequestHeaders(HttpRequest request)
-        {
-            if (request.Headers.TryGetValue("Authorization", out StringValues authToken))
-            {
-                return authToken.Last()
-                    .Split(" ")
-                    .Last();
+                return authToken.Last().Split(" ").Last();
             }
 
             return string.Empty;

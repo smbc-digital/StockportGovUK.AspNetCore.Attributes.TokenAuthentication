@@ -1,20 +1,14 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using StockportGovUK.AspNetCore.Attributes.TokenAuthentication;
 using Xunit;
 
 namespace StockportGovUK.AspNetCore.Attributes.TokenAuthentication.Tests
@@ -24,18 +18,9 @@ namespace StockportGovUK.AspNetCore.Attributes.TokenAuthentication.Tests
         private Mock<RouteData> mockRouteData = new Mock<RouteData>();
         private Mock<ActionDescriptor> mockActionDescriptor = new Mock<ActionDescriptor>();
         private Mock<Controller> mockController = new Mock<Controller>();
-        private Mock<IServiceProvider> MockServiceProvider { get {
-            var configuration = ConfigurationLoadHelper.GetConfiguration();
-            var mockServiceProvider = new Mock<IServiceProvider>();
-            mockServiceProvider
-                .Setup(provider => provider.GetService(typeof(IConfiguration)))
-                .Returns(configuration);
 
-            return mockServiceProvider;
-        }}
-
-        private Mock<HttpContext> MockHttpContext { get {
-            var configuration = ConfigurationLoadHelper.GetConfiguration();
+        private Mock<HttpContext> BuildMockHttpContext(string config = "appsettings.json") {
+            var configuration = ConfigurationLoadHelper.GetConfiguration(config);
 
             var mockServiceProvider = new Mock<IServiceProvider>();
             mockServiceProvider
@@ -48,7 +33,7 @@ namespace StockportGovUK.AspNetCore.Attributes.TokenAuthentication.Tests
                 .Returns(mockServiceProvider.Object);
 
             return mockHttpContext;
-        }}
+        }
 
         [Fact]
         public void TokenAuthenticatorAttribute_Returns_UnauthorizedAuthenticationResult_WhenIncorrect_ApiKeyIsInQueryString()
@@ -58,7 +43,30 @@ namespace StockportGovUK.AspNetCore.Attributes.TokenAuthentication.Tests
             
             var queryCollection = new QueryCollection(queryDictionary);
             
-            var mockHttpContext = MockHttpContext;
+            var mockHttpContext = BuildMockHttpContext();;
+            mockHttpContext.Setup(_ => _.Request.Query).Returns(queryCollection);
+            
+
+            var actionContext = new ActionContext(mockHttpContext.Object, mockRouteData.Object, mockActionDescriptor.Object);
+            var actionExecutingContext = new ActionExecutingContext(actionContext, new List<IFilterMetadata>(), new Dictionary<string, object>(), mockController.Object);
+            var tokenAuthenticationAttribute = new TokenAuthenticationAttribute();
+            
+            // Act 
+            tokenAuthenticationAttribute.OnActionExecuting(actionExecutingContext);
+            
+            // Assert
+            Assert.IsType<UnauthorizedObjectResult>(actionExecutingContext.Result);
+        }
+        
+        [Fact]
+        public void TokenAuthenticatorAttribute_Returns_UnauthorizedAuthenticationResult_WhenIncorrect_ApiKeyIsInQueryString_AndUsingAlternativeQueryString()
+        {
+            var queryDictionary = new Dictionary<string, StringValues>();
+            queryDictionary.Add("MyAlternativeQueryString", new StringValues("abc1234"));
+            
+            var queryCollection = new QueryCollection(queryDictionary);
+            
+            var mockHttpContext = BuildMockHttpContext();;
             mockHttpContext.Setup(_ => _.Request.Query).Returns(queryCollection);
             
 
@@ -77,7 +85,7 @@ namespace StockportGovUK.AspNetCore.Attributes.TokenAuthentication.Tests
         public void TokenAuthenticatorAttribute_Returns_AuthorizedAuthenticationResult_WhenCorrect_ApiKeyIsInQueryString()
         {
             var configuration = ConfigurationLoadHelper.GetConfiguration();
-            var mockHttpContext = MockHttpContext;
+            var mockHttpContext = BuildMockHttpContext();;
             var queryDictionary = new Dictionary<string, StringValues>();
             queryDictionary.Add("api_key", new StringValues("abc12345"));
             var queryCollection = new QueryCollection(queryDictionary);
@@ -104,7 +112,28 @@ namespace StockportGovUK.AspNetCore.Attributes.TokenAuthentication.Tests
             var dictionary = new Dictionary<string, StringValues>();
             dictionary.Add("Authorization", new StringValues("BEARER abc1234"));
                         
-            var mockHttpContext = MockHttpContext;
+            var mockHttpContext = BuildMockHttpContext();;
+            mockHttpContext.Setup(_ => _.Request.Headers).Returns(new HeaderDictionary(dictionary));
+            mockHttpContext.Setup(_ => _.Request.Query).Returns(new QueryCollection());
+
+            var actionContext = new ActionContext(mockHttpContext.Object, mockRouteData.Object, mockActionDescriptor.Object);
+            var actionExecutingContext = new ActionExecutingContext(actionContext, new List<IFilterMetadata>(), new Dictionary<string, object>(), mockController.Object);
+            var tokenAuthenticationAttribute = new TokenAuthenticationAttribute();
+            
+            // Act 
+            tokenAuthenticationAttribute.OnActionExecuting(actionExecutingContext);
+            
+            // Assert
+            Assert.IsType<UnauthorizedObjectResult>(actionExecutingContext.Result);
+        }
+
+                [Fact]
+        public void TokenAuthenticatorAttribute_Returns_UnauthorizedAuthenticationResult_WhenApiKeyIsInHeader_AndAlternativeHeaderIsUser()
+        {          
+            var dictionary = new Dictionary<string, StringValues>();
+            dictionary.Add("MyAlternativeHeader", new StringValues("abc1234"));
+                        
+            var mockHttpContext = BuildMockHttpContext();;
             mockHttpContext.Setup(_ => _.Request.Headers).Returns(new HeaderDictionary(dictionary));
             mockHttpContext.Setup(_ => _.Request.Query).Returns(new QueryCollection());
 
@@ -125,7 +154,7 @@ namespace StockportGovUK.AspNetCore.Attributes.TokenAuthentication.Tests
             var dictionary = new Dictionary<string, StringValues>();
             dictionary.Add("Authorization", new StringValues("BEARER abc12345"));
                         
-            var mockHttpContext = MockHttpContext;
+            var mockHttpContext = BuildMockHttpContext();
             mockHttpContext.Setup(_ => _.Request.Headers).Returns(new HeaderDictionary(dictionary));
             mockHttpContext.Setup(_ => _.Request.Query).Returns(new QueryCollection());
 
@@ -144,7 +173,7 @@ namespace StockportGovUK.AspNetCore.Attributes.TokenAuthentication.Tests
         [Fact]
         public void TokenAuthenticatorAttribute_Returns_BadRequestObjectResult_WhenExceptionIsThrown()
         {          
-            var mockHttpContext = MockHttpContext;
+            var mockHttpContext = BuildMockHttpContext();
             mockHttpContext.Setup(_ => _.Request.Query).Throws(new Exception("This is a test exception"));
 
             var actionContext = new ActionContext(mockHttpContext.Object, mockRouteData.Object, mockActionDescriptor.Object);
