@@ -7,5 +7,7 @@ namespace StockportGovUK.AspNetCore.Attributes.TokenAuthentication
         public string Header { get; set; }
 
         public string QueryString { get; set; }
+
+        public string CustomRedirect { get; set; }
     }
 }

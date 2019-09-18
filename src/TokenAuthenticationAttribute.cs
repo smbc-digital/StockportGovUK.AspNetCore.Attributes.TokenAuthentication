@@ -53,12 +53,16 @@ namespace StockportGovUK.AspNetCore.Attributes.TokenAuthentication
                     return;
                 }
 
-                //actionContext.Result = new RedirectToActionResult("ControllerName", "ActionName", null);
+                if(!string.IsNullOrEmpty(configuration.CustomRedirect))
+                {
+                    actionContext.Result = new RedirectResult(configuration.CustomRedirect);
+                    return;
+                }
+
                 actionContext.Result = new UnauthorizedObjectResult(authenticationResult.Reason);
             }
             catch (Exception ex)
             {
-                Console.WriteLine("**ERROR**: " + ex.Message);
                 actionContext.Result = new BadRequestObjectResult("Your request could not be processed"){ StatusCode = 500 };
             }
         }
