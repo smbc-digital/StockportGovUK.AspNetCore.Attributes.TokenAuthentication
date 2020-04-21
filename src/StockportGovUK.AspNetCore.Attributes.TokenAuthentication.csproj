@@ -2,16 +2,14 @@
   <PropertyGroup>
     <PackageId>StockportGovUK.AspNetCore.Attributes.TokenAuthentication</PackageId>
     <Title>The token authentication attribute enables simple basic token authentication which will prohibit access to endpoints based on a client providing a key either as "api_key" in the request query string or in the "Authorization" header.</Title>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
-    <VersionPrefix>0.3.0</VersionPrefix>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <VersionPrefix>1.0.0</VersionPrefix>
     <Authors>Colin Lees, Jon Chiles, Jon Hadley</Authors>
     <Company>Stockport Council</Company>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.App" Version="2.2.5" />
-    <PackageReference Include="System.Net.Http" Version="4.3.4" />
-    <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
   <PropertyGroup>
