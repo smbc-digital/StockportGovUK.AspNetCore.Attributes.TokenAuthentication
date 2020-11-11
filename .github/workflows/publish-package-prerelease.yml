@@ -1,0 +1,28 @@
+name: Publish prerelease
+on:
+  push:
+    branches:
+      - develop # Default pre-release branch
+jobs:
+  publish:
+    name: build, pack & publish
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '3.1.x'
+
+      # Build
+      - name: Build project
+        run: dotnet build
+        
+      # Pack
+      - name: Package project
+        run: dotnet pack --configuration Release --version-suffix prerelease-$GITHUB_RUN_NUMBER
+
+      # Publish
+      - name: Publish project
+        run: dotnet nuget push src/bin/Release/*.nupkg -k ${{ secrets.NUGET_API_KEY }} -s https://nuget.org
