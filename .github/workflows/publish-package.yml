@@ -17,11 +17,11 @@ jobs:
 
       # Build
       - name: Build project
-        run: dotnet build
+        run: dotnet build ~/src/StockportGovUK.AspNetCore.Attributes.TokenAuthentication.csproj
         
       # Pack
       - name: Package project
-        run: dotnet pack --configuration Release
+        run: dotnet pack ~/src/StockportGovUK.AspNetCore.Attributes.TokenAuthentication.csproj --configuration Release
 
       # Publish
       - name: Publish project
