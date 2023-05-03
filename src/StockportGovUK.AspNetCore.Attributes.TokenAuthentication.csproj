@@ -1,21 +1,22 @@
-<Project Sdk="Microsoft.NET.Sdk"> 
+﻿<Project Sdk="Microsoft.NET.Sdk"> 
   <PropertyGroup>
     <PackageId>StockportGovUK.AspNetCore.Attributes.TokenAuthentication</PackageId>
     <Title>The token authentication attribute enables simple basic token authentication which will prohibit access to endpoints based on a client providing a key either as "api_key" in the request query string or in the "Authorization" header.</Title>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
-    <VersionPrefix>1.0.0</VersionPrefix>
-    <Authors>Colin Lees, Jon Chiles, Jon Hadley</Authors>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <VersionPrefix>1.1.0</VersionPrefix>
+    <Authors>Jon Chiles, Jon Hadley</Authors>
     <Company>Stockport Council</Company>
   </PropertyGroup>
-
-  <ItemGroup>
-    <FrameworkReference Include="Microsoft.AspNetCore.App" />
-  </ItemGroup>
-
   <PropertyGroup>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="licenses\LICENSE.txt" Pack="true" PackagePath="$(PackageLicenseFile)"/>
+    <None Include="licenses\LICENSE.txt" Pack="true" PackagePath="$(PackageLicenseFile)" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.2.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.2.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="7.0.4" />
   </ItemGroup>
 </Project>

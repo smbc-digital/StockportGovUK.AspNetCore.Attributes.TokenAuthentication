@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -12,8 +11,6 @@ namespace StockportGovUK.AspNetCore.Attributes.TokenAuthentication
 {
     public class TokenAuthenticationAttribute : ActionFilterAttribute
     {
-        private static string defaultConfigurationSection = "TokenAuthentication";
-        
         private string[] _ignoredRoutes = new string[0];
 
         public string[] IgnoredRoutes
@@ -46,58 +43,66 @@ namespace StockportGovUK.AspNetCore.Attributes.TokenAuthentication
                     authToken = GetTokenFromHeaders(actionContext.HttpContext.Request, configuration);
                 }
 
-                var authenticator = new TokenAuthenticator(configuration.Key);
-                var authenticationResult = authenticator.Authenticate(authToken);
-                if (authenticationResult.IsAuthenticated)
+                if (configuration.Keys != null)
                 {
-                    return;
+                    foreach (string key in configuration.Keys)
+                    {
+                        var authenticator = new TokenAuthenticator(key);
+                        AuthenticationResult result = authenticator.Authenticate(authToken);
+                        if (result.IsAuthenticated)
+                            return;
+                    }
                 }
 
-                if(!string.IsNullOrEmpty(configuration.CustomRedirect))
+                if (!string.IsNullOrEmpty(configuration.Key))
+                {
+                    var authenticator = new TokenAuthenticator(configuration.Key);
+                    AuthenticationResult result = authenticator.Authenticate(authToken);
+                    if (result.IsAuthenticated)
+                        return;
+                }
+
+                if (!string.IsNullOrEmpty(configuration.CustomRedirect))
                 {
                     actionContext.Result = new RedirectResult(configuration.CustomRedirect);
                     return;
                 }
 
-                actionContext.Result = new UnauthorizedObjectResult(authenticationResult.Reason);
+                actionContext.Result = new UnauthorizedObjectResult("Unauthorised");
+
             }
             catch (Exception)
             {
-                actionContext.Result = new BadRequestObjectResult("Your request could not be processed"){ StatusCode = 500 };
+                actionContext.Result = new BadRequestObjectResult("Your request could not be processed") { StatusCode = 500 };
             }
         }
 
         private TokenAuthenticationConfiguration GetConfiguration(ActionExecutingContext actionContext)
         {
-            // This comes from here... https://www.devtrends.co.uk/blog/dependency-injection-in-action-filters-in-asp.net-core
             var configuration = actionContext.HttpContext.RequestServices.GetService<IConfiguration>();
-            if (configuration == null)
-            {
+            if (configuration is null)
                 throw new Exception("Could not load configuration");
-            }
 
-            var tokenAuthenticationSection = configuration.GetSection(defaultConfigurationSection);
+            var tokenAuthenticationSection = configuration.GetSection(AuthenticationConstants.DefaultConfigurationSection);
             var tokenAuthenticationConfiguration = new TokenAuthenticationConfiguration();
 
-            if (tokenAuthenticationSection == null ||!tokenAuthenticationSection.AsEnumerable().Any())
-            {
+            if (tokenAuthenticationSection is null || !tokenAuthenticationSection.AsEnumerable().Any())
                 throw new Exception("Token authentication is not configured");
-            }
-            
-            tokenAuthenticationSection.Bind(tokenAuthenticationConfiguration);    
+
+            tokenAuthenticationSection.Bind(tokenAuthenticationConfiguration);
             return tokenAuthenticationConfiguration;
         }
-        
+
         private static string GetTokenFromQueryString(HttpRequest request, TokenAuthenticationConfiguration configuration)
         {
-            if(!string.IsNullOrEmpty(configuration.QueryString))
+            if (!string.IsNullOrEmpty(configuration.QueryString))
             {
-                return request.Query.FirstOrDefault(a => a.Key == configuration.QueryString)
+                return request.Query.FirstOrDefault(a => a.Key.Equals(configuration.QueryString))
                     .Value
                     .FirstOrDefault();
             }
 
-            return request.Query.FirstOrDefault(a => a.Key == "api_key")
+            return request.Query.FirstOrDefault(a => a.Key.Equals("api_key"))
                     .Value
                     .FirstOrDefault();
         }
@@ -105,17 +110,17 @@ namespace StockportGovUK.AspNetCore.Attributes.TokenAuthentication
         private static string GetTokenFromHeaders(HttpRequest request, TokenAuthenticationConfiguration configuration)
         {
             StringValues authToken;
-
-            if(!string.IsNullOrEmpty(configuration.Header))
+            if (!string.IsNullOrEmpty(configuration.Header))
             {
-                if(request.Headers != null && request.Headers.TryGetValue(configuration.Header, out authToken)){
+                if (request.Headers != null && request.Headers.TryGetValue(configuration.Header, out authToken))
+                {
                     return authToken;
-                };
-            }        
+                }
+            }
 
             if (request.Headers != null && request.Headers.TryGetValue("Authorization", out authToken))
             {
-                return authToken.Last().Split(" ").Last();
+                return authToken.Last().Split(' ').Last();
             }
 
             return string.Empty;
